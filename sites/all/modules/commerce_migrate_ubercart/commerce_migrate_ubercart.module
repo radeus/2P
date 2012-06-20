@@ -59,7 +59,7 @@ function commerce_migrate_ubercart_admin_form($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('Source Imagefield types to be migrated'),
     '#description' => t('Comma-delimited list of machine names of image-type fields to be migrated. For many Ubercart versions this may be field_image_cache (D6 direct import or D7 migrated from D6) or uc_product_image (D7 installed fresh)'),
-    '#default_value' => variable_get('commerce_ubercart_image_fields', 'field_image_cache'),
+    '#default_value' => variable_get('commerce_migrate_ubercart_image_fields', 'field_image_cache'),
   );
   $form['commerce_migrate_ubercart_public_files_directory'] = array(
     '#type' => 'textfield',
