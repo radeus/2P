@@ -1,0 +1,148 @@
+<?php
+
+define('SOURCE_DATABASE_DRUPAL_VERSION', variable_get('commerce_migrate_ubercart_source_database_api_version', 'd7'));
+/**
+ * Implements hook_menu().
+ */
+function commerce_migrate_ubercart_menu() {
+  $items['admin/content/migrate/ubercart_migration_options'] = array(
+    'title' => 'Configure Ubercart Migration',
+    'description' => 'Database and filesystem configuration for Commerce Migrate Ubercart',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('commerce_migrate_ubercart_admin_form'),
+    'access arguments' => array('migration information'),
+    'weight' => 111,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_entity_info_alter() to prevent locking behavior in the
+ * commerce order entity.
+ *
+ * @param $info
+ */
+function commerce_migrate_ubercart_entity_info_alter(&$entity_info) {
+  unset($entity_info['commerce_order']['locking mode']);
+}
+/*
+ * Implements hook_migrate_api().
+ */
+function commerce_migrate_ubercart_migrate_api() {
+  $api = array(
+    'api' => 2,
+  );
+  return $api;
+}
+
+/**
+ * Administrative form to set migration options.
+ */
+function commerce_migrate_ubercart_admin_form($form, &$form_state) {
+  $form['commerce_migrate_ubercart_source_database'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Source database key in settings.php'),
+    '#description' => t('The source database key in settings.php that describes an external database from which the import should be done. If left as "default" the default database will be used (and it must have all the Ubercart tables in it.)'),
+    '#default_value' => variable_get('commerce_migrate_ubercart_source_database', 'default'),
+  );
+  $form['commerce_migrate_ubercart_source_database_api_version'] = array(
+    '#type' => 'select',
+    '#title' => t('Source Database Drupal major version'),
+    '#options' => array(
+      'd6' => t('Drupal 6'),
+      'd7' => t('Drupal 7'),
+    ),
+    '#default_value' => variable_get('commerce_migrate_ubercart_source_database_api_version', 'd7'),
+  );
+  $form['commerce_migrate_ubercart_image_fields'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Source Imagefield types to be migrated'),
+    '#description' => t('Comma-delimited list of machine names of image-type fields to be migrated. For many Ubercart versions this may be field_image_cache (D6 direct import or D7 migrated from D6) or uc_product_image (D7 installed fresh)'),
+    '#default_value' => variable_get('commerce_ubercart_image_fields', 'field_image_cache'),
+  );
+  $form['commerce_migrate_ubercart_public_files_directory'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Relative or absolute path to the public files directory used for Ubercart images'),
+    '#description' => t('Enter a path like /path/to/files which indicates where the source Ubercart files directory can be found. This is used for images in a Drupal 7 source.'),
+    '#default_value' => variable_get('commerce_migrate_ubercart_public_files_directory', variable_get('file_public_path', 'sites/default/files')),
+  );
+  $form['commerce_migrate_ubercart_source_drupal_root'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Relative or absolute path to the root of the source Drupal installation'),
+    '#description' => t('Enter a path like /path/to/files which indicates DRUPAL_ROOT of the source files. This is used to obtain image locations in a Drupal 6 source.'),
+    '#default_value' => variable_get('commerce_migrate_ubercart_source_drupal_root', DRUPAL_ROOT),
+  );
+
+  $filters = filter_formats();
+  foreach ($filters as $machine_name => $info) {
+    $options[$machine_name] = $info->name;
+  }
+  $form['commerce_migrate_ubercart_default_filter_format'] = array(
+    '#type' => 'select',
+    '#title' => t('Default filter format to be used if the source input format cannot be correlated to input formats in this Drupal system'),
+    '#description' => t('The input filters in one Drupal installation may not map to this Drupal install. First, get all your filters set up to be the same. This filter will be used as the fallback. Note that this choice may have security implications, if you accidentally set the format to something you do not want, like "php".'),
+    '#options' => $options,
+    '#default_value' => variable_get('commerce_migrate_ubercart_default_filter_format', 'plain_text'),
+  );
+
+  $form['commerce_migrate_ubercart_user_map_ok'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('User ownership should be mapped'),
+    '#description' => t('Check this box if the users and user ids on this system are the same as in the source database. Uncheck it if user ownership of products and nodes should not be mapped, in which case they will be assigned to user 1.'),
+    '#default_value' => variable_get('commerce_migrate_ubercart_user_map_ok', FALSE),
+  );
+  $form['commerce_migrate_ubercart_user_migration_class'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Class name of migration to be used to map users'),
+    '#description' => t('(optional) If mapping users to entities, a migration class may be specified, like "CommerceMigrateUbercartUser". Incoming uids will then be mapped using that migration; otherwise they will be used as is, which would work on an upgraded site. You must previously have migrated this migration, of course.'),
+    '#default_value' => variable_get('commerce_migrate_ubercart_user_migration_class', ""),
+    '#states' => array(
+      'visible' => array(
+        ':input[name=commerce_migrate_ubercart_user_map_ok]' => array('checked' => TRUE)
+    )),
+
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Make sure that we can actually access the database and directory provided
+ */
+function commerce_migrate_ubercart_admin_form_validate($form, &$form_state) {
+  // Check to see whether we can access the database
+  $migration_source_db = $form_state['values']['commerce_migrate_ubercart_source_database'];
+  if (empty($GLOBALS['databases'][$migration_source_db])) {
+    form_set_error('commerce_migrate_ubercart_source_database', t('The database key $databases["%key"] does not exist', array('%key' => $migration_source_db)));
+  }
+  else {
+    try {
+      $connection = Database::getConnection('default', $migration_source_db);
+    }
+    catch (Exception $e) {
+      form_set_error('commerce_migrate_ubercart_source_database', t('The database key $databases["%key"] is not functional (Exception message %msg', array('%key' => $migration_source_db, '%msg' => $e->getMessage())));
+    }
+    $x = 1;
+  }
+
+  $ubercart_public_filepath = $form_state['values']['commerce_migrate_ubercart_public_files_directory'];
+
+  if (!file_exists($ubercart_public_filepath)) {
+    form_set_error('commerce_migrate_ubercart_public_files_directory', t('The directory %dir does not exist.', array('%dir' => $ubercart_public_filepath)));
+  }
+}
+/**
+ * Decide whether we have an external database and return the correct connection.
+ *
+ * If the migration source database exists, we will get a connection to it
+ * instead of using the $databases['default'].
+ */
+function commerce_migrate_ubercart_get_source_connection() {
+  $migration_source_db = variable_get('commerce_migrate_ubercart_source_database', 'default');
+  if (empty($GLOBALS['databases'][$migration_source_db]['default'])) {
+    $migration_source_db = NULL;
+  }
+  $connection = Database::getConnection('default', $migration_source_db);
+  return $connection;
+}
