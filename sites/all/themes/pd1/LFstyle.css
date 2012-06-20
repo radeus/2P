@@ -1,0 +1,51 @@
+
+ul li a {
+  line-height: 150%;
+  padding: 0;
+}
+
+ul.menu li a.active { font-weight: bold; }
+
+ul.menu li li li li.leaf a,
+ul.menu li li li.leaf a,
+ul.menu li li.leaf a,
+ul.menu li.leaf a {
+  background: url(img/LF/leaf.gif) no-repeat left center;
+}
+ul.menu li li li li.collapsed a,
+ul.menu li li li.collapsed a,
+ul.menu li li.collapsed a,
+ul.menu li.collapsed a {
+  background: url(img/LF/collapsed-gold.gif) no-repeat left center;
+}
+ul.menu li li li li.expanded a,
+ul.menu li li li.expanded a,
+ul.menu li li.expanded a,
+ul.menu li.expanded a {
+  background: url(img/LF/right_menu_li_bk_exp.gif) no-repeat left center;
+}
+
+ul.menu li a { padding-left: 15px; }
+ul.menu li li a { margin-left: 15px; }
+ul.menu li li li a { margin-left: 30px; }
+ul.menu li li li li a { margin-left: 45px; }
+ul.menu li li li li li a { margin-left: 60px; }
+
+ul.menu li li li li.leaf a.active,
+ul.menu li li li.leaf a.active,
+ul.menu li li.leaf a.active,
+ul.menu li.leaf a.active {
+  background: transparent url(img/LF/leaf-active.gif) no-repeat left center;
+}
+ul.menu li li li li.collapsed a.active,
+ul.menu li li li.collapsed a.active,
+ul.menu li li.collapsed a.active,
+ul.menu li.collapsed a.active {
+  background: transparent url(img/LF/collapsed-green.png) no-repeat left center;
+}
+ul.menu li li li li.expanded a.active,
+ul.menu li li li.expanded a.active,
+ul.menu li li.expanded a.active,
+ul.menu li.expanded a.active {
+  background: transparent url(img/LF/expanded.active.png) no-repeat left center;
+}

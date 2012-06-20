@@ -1,0 +1,6 @@
+name = P2 Regions: 2P Utility Module
+description = Creates a hierarchical page of regions from taxonomy vocal 5.
+core = 7.x
+package = Other
+
+files[] = p2_regions.module

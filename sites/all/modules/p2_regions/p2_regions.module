@@ -1,0 +1,113 @@
+<?php
+/**
+* Implements hook_menu().
+*/
+function p2_regions_menu() {
+  $items['regions'] = array(
+    'title' => 'Maps, Bike Shops, and Mountain Bike Events organized by region',
+    'page callback' => '_p2_regions_kategorieliste',
+    'page arguments' => array('1'),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK, // no automatic menu entry
+  );
+
+  return $items;
+}
+
+/**
+* Builds a nested list of taxonomy terms for a vocabulary.
+* Very simple, could be optimized.
+* Algorithm from http://drupal.org/node/223675#comment-900999
+*/
+function _p2_regions_vocabulary_tree($vid) {
+  $depth = 0;
+  $num_at_depth = 0;
+  $tree = taxonomy_get_tree($vid);
+
+  $markup = "<ul class=\"termlist\">\n<li class=\"clearfix\">";
+  foreach ($tree as $term) {
+    $diffdepth=0;
+    if ($term->depth > $depth) {
+      $markup .= "\n<ul>\n<li class=\"clearfix\">";
+      $depth = $term->depth;
+      $num_at_depth = 0;
+    }
+    if ($term->depth < $depth) {
+      $diffdepth= $depth -$term->depth;
+      while ($diffdepth > 0){
+        $markup .= "</li>\n</ul>\n";
+        $diffdepth--;
+      }
+      $depth = $term->depth;
+    }
+    if (($term->depth == $depth) && ($num_at_depth > 0)) {
+        $markup .= "</li>\n<li class=\"clearfix\">";
+      }
+    $markup .= _p2_regions_build_term_with_feed($term->name, array($term->tid));
+    $num_at_depth++;
+  }
+  $markup .= "</li>\n</ul>\n";
+  return $markup;
+}
+
+
+/**
+* Get Vocabulary and print description
+*/
+function _p2_regions_vocab_load($vid) {
+  $vocab = taxonomy_vocabulary_load(5);
+  return $vocab->description;
+  }
+
+
+/**
+* Builds a page which prints hierarchically the kategory taxonomy terms.
+*/
+function _p2_regions_kategorieliste($vid) {
+  $markup = '<p>'._p2_regions_vocab_load($vid).'</p>';
+  $markup = '<img src="'.base_path().drupal_get_path('module', 'p2_regions').'/world-map.png" alt="" />';
+  $markup .= _p2_regions_vocabulary_tree($vid = 5);
+  $markup .= "<h2>Combinations</h2>\n";
+  $markup .= "<ul class=\"termlist\">\n";
+  $markup .= "<li>" . _p2_regions_build_term_with_feed('Terms X+Y', array(19, 20)) . "</li>\n";
+  $markup .= "<li>" . _p2_regions_build_term_with_feed('Terms X+Y+ ...', array(14, 15, 18, 19, 20, 21, 16, 17)) . "</li>\n";
+  $markup .= "</ul>\n";
+
+  $build = array();
+  $build['terms'] = array(
+    '#weight' => -5,
+    '#prefix' => '<div class="term-listing">',
+    '#markup' => $markup,
+    '#suffix' => '</div>',
+   );
+
+  return $build;
+}
+
+/**
+* Builds a link with parameter name with (count) and the corresponding feed.
+* @param $name
+*  Name of the link
+* @param $tids
+*  Array of tids
+* @return
+*  A link with parameter name with (count) and the corresponding feed.
+*/
+function _p2_regions_build_term_with_feed($name, $tids) {
+   $count = db_query("SELECT COUNT(nid) FROM {taxonomy_index} WHERE tid IN (:tids) ", array(':tids' => implode(',', $tids)))->fetchField();
+  $markup = l($name . ' (' . $count . ')', 'taxonomy/term/'. implode('+', $tids), array('attributes' => (array('class' => array('termtext')))));
+  $markup .= ' ' . p2_regions_feed_icon(array('url' => 'taxonomy/term/' . implode('+', $tids) . '/all/feed', 'title' => $name));
+  return $markup;
+}
+
+/**
+* Copy of theme_feed_icon which avoids double encoding of &
+* due to issue http://drupal.org/node/1211668.
+* Uses !feed-title instead of @feed-title for t().
+*/
+function p2_regions_feed_icon($variables) {
+  $text = t('Subscribe to !feed-title', array('!feed-title' => $variables['title']));
+  if ($image = theme('image', array('path' => 'misc/feed.png', 'width' => 16, 'height' => 16, 'alt' => $text))) {
+    return l($image, $variables['url'], array('html' => TRUE, 'attributes' => array('class' => array('feed-icon'), 'title' => $text)));
+  }
+}

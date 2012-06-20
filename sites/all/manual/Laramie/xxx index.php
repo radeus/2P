@@ -1,0 +1,1 @@
+<?php $pageid = "2"; require('../../../3col.php'); ?>

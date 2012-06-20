@@ -1,0 +1,115 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+html {
+	height: 100%;
+}
+header, nav, section, article, aside, footer {
+	display: block;
+}
+body {
+	font: 12px/18px Helvetica, Arial, Tahoma, Verdana, sans-serif;
+	width: 100%;
+	height: 100%;
+}
+input {
+	vertical-align: middle;
+}
+#wrapper {
+	width: 995px;
+	margin: 0 auto;
+	min-height: 100%;
+	height: auto !important;
+	height: 100%;
+}
+
+
+/* Header
+-----------------------------------------------------------------------------*/
+#header {
+	height: 150px;
+	background: #FFE680;
+}
+
+
+/* Middle
+-----------------------------------------------------------------------------*/
+#middle {
+	width: 100%;
+	padding: 0 0 100px;
+	height: 1%;
+	position: relative;
+}
+#middle:after {
+	content: '.';
+	display: block;
+	clear: both;
+	visibility: hidden;
+	height: 0;
+}
+#container {
+	width: 100%;
+	float: left;
+	overflow: hidden;
+
+	margin: 0 515px 0 0;
+	width: 480px
+}
+#content {
+}
+
+
+/* Sidebar First
+-----------------------------------------------------------------------------*/
+#sidebar-first {
+  float: left;
+  margin-left: -515px;
+  width: 310px;
+  position: relative;
+}
+
+
+/* Sidebar Second
+-----------------------------------------------------------------------------*/
+#sidebar-second {
+  float: left;
+  margin-left: -205px;
+  margin-right: -3px;
+  width: 205px;
+  position: relative;
+}
+
+
+/* Footer
+-----------------------------------------------------------------------------*/
+#footer {
+	margin: -100px auto 0;
+	height: 100px;
+	position: relative;
+}
+#footer-inner {
+  width: 995px;
+  margin: 0 auto;
+}
+
+
+/* BG colors - ERASE
+-----------------------------------------------------------------------------*/
+
+#header {
+	background: #FFE680;
+}
+#content {
+	background: #dF46e0;
+}
+#sidebar-first {
+	background: #B5E3FF;
+}
+#sidebar-second {
+	background: #FFACAA;
+}
+#footer {
+  background: #000;
+  color: #fff;
+}

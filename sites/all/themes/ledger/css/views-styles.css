@@ -1,0 +1,27 @@
+/**
+ * @file
+ * Views Styling
+ */
+
+.region-sidebar-first .view-regional-breakdown-terms .views-row {
+  background: transparent url(../img/bg-side-1-bottom-fade.png) scroll no-repeat center bottom;
+  margin-bottom: 12px;
+  overflow: auto;
+}
+
+.views-field-field-image-cache {
+  border: 1px solid #335066;
+  float: left;
+  line-height: 0;
+  margin: 0 9px 9px 0;
+  padding: 0;
+}
+
+.views-ui-display-tab-bucket .odd {
+  background-color: #fff;
+}
+
+
+.view-uc-products .views-row {
+  overflow: auto;
+}

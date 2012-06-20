@@ -1,0 +1,22 @@
+
+
+<?php if($node->type == 'publisher' ): ?>
+  <h2 class="title">Titles from this Publisher (manual loop)</h2>
+  <div class="category-image">
+
+<?php foreach ($node->field_pub_backref as $id => $backref): ?>
+  <div class="handmade-teaser">
+    <?php $brefnode = node_load($backref['nid']); ?>
+    
+    <?php $fpath = $brefnode->field_image_cache['0']['filepath']; ?>
+    <a href="<?php print base_path().'node/'.$backref['nid']; ?>">
+      <?php print theme('imagecache', '100x90_inside', $fpath, ''); ?>
+    </a>
+
+    <h2><?php print l($brefnode->title,'node/'.$backref['nid']); ?></h2>
+    <p>need price and buy now button, anything else?</p>
+  </div>
+<?php endforeach; ?>
+
+  </div>
+<?php endif; ?>
